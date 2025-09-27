@@ -1,0 +1,37 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score
+
+data = pd.read_csv("C:/Users/Student/Downloads/cancer.csv")
+data.head()
+data.drop("id",axis=1)
+data['diagnosis'].unique()
+
+label_encoder = LabelEncoder()
+data['diagnosis'] = label_encoder.fit_transform(data['diagnosis'])
+data.head()
+
+train , test = train_test_split(data, test_size=0.3)
+
+trainX =  train[data.columns[2:-1]]
+trainY = train[data.columns[1]]
+
+testX = test[data.columns[2:-1]]
+testY = test[data.columns[1]]
+
+c_knn = KNeighborsClassifier(n_neighbors=3)
+c_knn.fit(trainX.values,trainY.values)
+
+y_pred = c_knn.predict(testX.values)
+print("Accuracy : ",accuracy_score(testY.values,y_pred))
+
+sample = [[15.78,17.89,103.6,781,0.0971,0.1292,0.09954,0.06606,0.1842,0.06082,0.5058,0.9849,3.564,54.16,0.005771,0.04061,0.02791,0.01282,0.02008,0.004144,20.42,27.28,136.5,1299,0.1396,0.5609,0.3965,0.181,0.3792]]
+pred = c_knn.predict(sample)
+res = pred[0]
+if res==0:
+    print("Benign")
+if res==1:
+    print("Malignant")
