@@ -1,119 +1,73 @@
-package com.example.pro;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+package com.example.sqlitedatabasesavedata;
 
+import androidx.appcompat.app.AppCompatActivity;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.*;
 
 public class MainActivity extends AppCompatActivity {
-    DatabaseHelper myDb;
-    EditText editName,editSurname,editMarks,editTextId;
-    Button add,viewall,delete,update;
+    EditText etName, etCell;
+    TextView tvResult;
+    ContactsDB db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        etName = findViewById(R.id.etName);
+        etCell = findViewById(R.id.etCell);
+        tvResult = findViewById(R.id.tvResult);
+        db = new ContactsDB(this);
 
-        myDb=new DatabaseHelper(this);
-        editName=(EditText) findViewById(R.id.e1);
-        editSurname=(EditText) findViewById(R.id.e2);
-        editMarks=(EditText) findViewById(R.id.e3);
-        editTextId=(EditText) findViewById(R.id.e4);
-        add=(Button) findViewById(R.id.button);
-        viewall=(Button) findViewById(R.id.button2);
-        delete=(Button) findViewById(R.id.button4);
-        update=(Button) findViewById(R.id.button3);
-        AddData();
-        viewalldata();
-        deletedata();
-        updatedata();
+        findViewById(R.id.btnInsert).setOnClickListener(v -> insert());
+        findViewById(R.id.btnShow).setOnClickListener(v -> showData());
+        findViewById(R.id.btnUpdate).setOnClickListener(v -> update());
+        findViewById(R.id.btnDelete).setOnClickListener(v -> delete());
     }
 
-    private void updatedata() {
-        update.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean isUpdate = myDb.updatedata(editTextId.getText().toString(),editName.getText().toString(),editSurname.getText().toString(),editMarks.getText().toString());
-                if(isUpdate==true)
-                    Toast.makeText(MainActivity.this,"Data Updated",Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(MainActivity.this,"Data Not Updated",Toast.LENGTH_LONG).show();
+    private void insert() {
+        try {
+            db.open();
+            db.insert(etName.getText().toString(), etCell.getText().toString());
+            db.close();
+            Toast.makeText(this, "Inserted", Toast.LENGTH_SHORT).show();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
 
+    private void showData() {
+        try {
+            db.open();
+            Cursor c = db.fetch();
+            StringBuilder sb = new StringBuilder();
+            while (c.moveToNext()) {
+                sb.append(c.getString(0)).append(": ");
+                sb.append(c.getString(1)).append(", ");
+                sb.append(c.getString(2)).append("\n");
             }
-        });
+            tvResult.setText(sb.toString());
+            db.close();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    private void deletedata() {
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Integer deleteRows = myDb.deletedata(editTextId.getText().toString());
-                if(deleteRows>0)
-                    Toast.makeText(MainActivity.this,"Data Deleted",Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(MainActivity.this,"Data Not Deleted",Toast.LENGTH_LONG).show();
-
-            }
-        });
+    private void update() {
+        try {
+            db.open();
+            db.update("1", etName.getText().toString(), etCell.getText().toString());
+            db.close();
+            Toast.makeText(this, "Updated where id=1", Toast.LENGTH_SHORT).show();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    private void viewalldata() {
-        viewall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Cursor res=myDb.getAllData();
-                if(res.getCount()==0)
-                {
-                    //show msg
-                    showMessage("Error","Nothing found");
-                    return;
-
-
-                }
-                StringBuffer b=new StringBuffer();
-                while(res.moveToNext()){
-                    b.append("Id:"+res.getString(0)+"\n");
-                    b.append("Name:"+res.getString(1)+"\n");
-                    b.append("Surname:"+res.getString(2)+"\n");
-                    b.append("Marks:"+res.getString(3)+"\n");
-
-
-
-                }
-                showMessage("Data",b.toString());
-
-            }
-        });
+    private void delete() {
+        try {
+            db.open();
+            db.delete("1");
+            db.close();
+            Toast.makeText(this, "Deleted where id=1", Toast.LENGTH_SHORT).show();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
+}
 
-    private void showMessage(String title, String message) {
-
-        AlertDialog.Builder builder=new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.show();
-    }
-
-    private void AddData() {
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean isInserted=myDb.insertData(editName.getText().toString(),editSurname.getText().toString(),editMarks.getText().toString());
-                if(isInserted==true)
-                {
-                    Toast.makeText(MainActivity.this,"Data inserted",Toast.LENGTH_LONG).show();
-
-                }
-                else
-                    Toast.makeText(MainActivity.this,"Data not inserted",Toast.LENGTH_LONG).show();
-
-            }
-        });
-
-    }
 }
