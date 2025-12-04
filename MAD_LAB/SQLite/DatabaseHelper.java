@@ -1,73 +1,79 @@
-package com.example.pro;
+package com.example.sqlitedatabasesavedata;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import androidx.annotation.Nullable;
+public class ContactsDB {
+    private static final String KEY_ID = "_id";
+    private static final String KEY_NAME = "person_name";
+    private static final String KEY_CELL = "_cell";
+    private static final String DATABASE_NAME = "ContactsDB";
+    private static final String TABLE_NAME = "ContactsTable";
+    private static final int DATABASE_VERSION = 1;
 
-import java.util.jar.Attributes;
-
-public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final String DATABASE_NAME = "Student.db";
-    public static final String TABLE_NAME = "student_table";
-    public static final String COL_1 = "ID";
-    public static final String COL_2 = "NAME";
-    public static final String COL_3 = "SURNAME";
-    public static final String COL_4 = "MARKS";
     private SQLiteDatabase db;
+    private final Context context;
+    private DBHelper dbHelper;
 
-
-    public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 1);
+    public ContactsDB(Context ctx) {
+        context = ctx;
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + TABLE_NAME + "(ID INTEGER PRIMARY KEY AUTOINCREMENT,NAME TEXT,SURNAME TEXT,MARKS INTEGER)");
+    private static class DBHelper extends SQLiteOpenHelper {
+        DBHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL("CREATE TABLE " + TABLE_NAME + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + KEY_NAME + " TEXT NOT NULL, "
+                    + KEY_CELL + " TEXT NOT NULL);");
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            onCreate(db);
+        }
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(db);
+    public ContactsDB open() throws SQLException {
+        dbHelper = new DBHelper(context);
+        db = dbHelper.getWritableDatabase();
+        return this;
     }
 
-    public boolean insertData(String name, String surname, String marks) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues c = new ContentValues();
-        c.put(COL_2, name);
-        c.put(COL_3, surname);
-        c.put(COL_4, marks);
-        long result = db.insert(TABLE_NAME, null, c);
-        if (result == -1)
-            return false;
-        else
-            return true;
-
+    public void close() {
+        dbHelper.close();
     }
 
-    public Cursor getAllData() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        return res;
+    public long insert(String name, String cell) {
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_CELL, cell);
+        return db.insert(TABLE_NAME, null, values);
     }
 
-    public Integer deletedata(String id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "ID = ?", new String[]{id});
+    public Cursor fetch() {
+        return db.query(TABLE_NAME, new String[]{KEY_ID, KEY_NAME, KEY_CELL},
+                null, null, null, null, null);
     }
 
-    public boolean updatedata(String id,String name, String surname, String marks) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues c = new ContentValues();
-        c.put(COL_1, id);
-        c.put(COL_2, name);
-        c.put(COL_3, surname);
-        c.put(COL_4, marks);
-        db.update(TABLE_NAME, c, "NAME =?", new String[]{name});
-        return true;
+    public int update(String rowId, String name, String cell) {
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_CELL, cell);
+        return db.update(TABLE_NAME, values, KEY_ID + "=?", new String[]{rowId});
+    }
+
+    public int delete(String rowId) {
+        return db.delete(TABLE_NAME, KEY_ID + "=?", new String[]{rowId});
     }
 }
+
