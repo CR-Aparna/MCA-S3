@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+tools:context=".MainActivity">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Week Days"
+android:textSize="20sp"
+android:textColor="#4A56C3"/>
+<ListView
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:id="@+id/iv"
+android:divider="@color/purple_500"
+android:dividerHeight="3dp"/>
+</LinearLayout>
+
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:textColor="#B80909"
+android:textStyle="bold"
+android:textSize="25dp">
+</TextView>
